@@ -1,4 +1,4 @@
-# heavy-forwarder-ami
+# heavy-forwarder-packer-ami
 
 This repo uses [packer](https://packer.io) to build an AMI for deploying a Splunk Heavy Forwarder (HFW) to AWS.  This is intended for use with a [companion Terraform repo](https://github.com/Cimpress-MCP/splunk-heavy-forwarder-terraform-deployment) which will build the necessary infrastructure to deploy this to AWS using a sensible infrastructure.
 
@@ -70,7 +70,7 @@ If you want the resultant AMI to be in multiple regions you don't have to run th
 Here is a quick rundown of what Packer does:
 
  1. Copy the license, app, installation RPMs, and some helper scripts into the build instance
- 2. Install Splunk, Install the crowdstrike agent, and install the AWS SSM agent (The standard Splunk installation location - AKA $SPLUNK_HOME - is `/opt/splunk`)
+ 2. Install Splunk, Install the crowdstrike agent, and install the AWS SSM agent (The standard Splunk installation location - AKA `$SPLUNK_HOME` - is `/opt/splunk`)
  3. Install Python 3.7.  Python 3.7 is the Python version used by Splunk when switching to Python3, but unfortunately it must be manually compiled to install it on Amazon Linux 2
  4. Copy the contents of the `license` directory to `/opt/splunk/etc/licenses/enterprise/`.  Splunk will automatically find and import it from there when it starts.
  5. Copy the Splunk App to `/opt/splunk/etc/apps/splunkclouduf.spl`
@@ -81,6 +81,6 @@ Here is a quick rundown of what Packer does:
  10. Re-configure it as a HFW instead of a full Splunk Enterprise installation
  11. Add the destination server input to the HFW configuration
  12. Install the `splunkclouduf.spl` app so that the HFW can authenticate with Splunk Cloud
- 13. Configure the HFW to serve web traffic over HTTP instead of HTTPS (with a self-signed certificate)
+ 13. Configure the HFW to serve web traffic over HTTPS instead of HTTP (with a self-signed certificate)
  14. Configure the HFW to serve the UI on port 443 instead of 8000
  15. Throw away the admin password
