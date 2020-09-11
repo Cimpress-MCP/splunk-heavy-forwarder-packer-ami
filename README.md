@@ -4,13 +4,26 @@ This repo uses [packer](https://packer.io) to build an AMI for deploying a Splun
 
 ## Additional Requirements
 
-This contains the installer for Splunk 8.0.5 but requires two additional things from you:
+This requires a few extra things from you:
 
- 1. A license file from Splunk
- 2. The app from Splunk that authenticates your HFW with to your Splunk Cloud account
- 3. The input "address" for your Splunk Cloud instance
+ 1. [The Splunk Enterprise RPM file](https://www.splunk.com/en_us/download/splunk-enterprise.html)
+ 2. A license file from Splunk
+ 3. The app from Splunk that authenticates your HFW with to your Splunk Cloud account
+ 4. The input "address" for your Splunk Cloud instance
 
-Both of these will be provided to you by Splunk or (in the case of Cimpress business units) CimSec.  After downloading this repository copy your splunk license file into the [license](license) directory (the filename doesn't matter).  The Splunk app to direct the HFW output should be saved to [bin/splunkclouduf.spl](bin/splunkclouduf.spl).  A placeholder for this already exists in this repo for reference, but you must replace it before building the AMI with packer.  Finally you must tell the HFW where to direct output to.  Normally this is the standard "input" for your splunk cloud account, and will be something like `inputs1.[account_name].splunkcloud.com:9997`
+In detail:
+
+**Enterprise RPM**
+Download the Splunk Enterprise x86 64bit RPM from Splunk and save to [bin/splunk-enterprise-x86_64.rpm](bin/splunk-enterprise-x86_64.rpm).
+
+**Splunk License**
+Splunk will provide you with a HFW license file or, in the case of Cimpress business units, you will get this from CimSec.  Copy your license file into the [license](license) directory (the filename doesn't matter).
+
+**Splunk app for authentication**
+Splunk will provide you with an app that authenticates your HFW with your splunk cloud instance.  For CimSec business units this will be provided by CimSec.  Download this app and overwrite [bin/splunkclouduf.spl](bin/splunkclouduf.spl).
+
+**Input "address" for Splunk Cloud**
+Finally, you must tell the HFW where to direct output to.  Normally this is the standard "input" for your splunk cloud account, and will be something like `inputs1.[account_name].splunkcloud.com:9997`  This will be passed into packer when you run it (see [Running Packer](#running-packer) below)
 
 ## Running Packer
 
