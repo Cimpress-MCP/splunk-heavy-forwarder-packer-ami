@@ -1,0 +1,102 @@
+{
+  "variables": {
+    "aws_access_key_id": "{{ env `AWS_ACCESS_KEY_ID` }}",
+    "aws_secret_access_key": "{{ env `AWS_SECRET_ACCESS_KEY` }}",
+    "aws_region": "{{ env `AWS_REGION` }}",
+    "release_version": "1.0.0",
+    "splunk_version": "8.0.5",
+    "splunk_input": null
+  },
+  "builders": [
+    {
+      "subnet_id" : "{{ user `subnet_id` }}",
+      "security_group_id": "{{ user `security_group_id` }}",
+      "name": "amazon-aws-linux",
+      "type": "amazon-ebs",
+      "ami_regions": [
+        "{{ user `region` }}"
+      ],
+      "access_key": "{{ user `aws_access_key_id` }}",
+      "secret_key": "{{ user `aws_secret_access_key` }}",
+      "region": "{{ user `region` }}",
+      "force_deregister": true,
+      "force_delete_snapshot": true,
+      "ssh_pty": true,
+      "instance_type": "t2.medium",
+      "associate_public_ip_address": true,
+      "encrypt_boot": true,
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "architecture": "x86_64",
+          "name": "*amzn2-ami-hvm-*",
+          "block-device-mapping.volume-type": "gp2",
+          "root-device-type": "ebs"
+        },
+        "owners": ["amazon"],
+        "most_recent": true
+      },
+      "ssh_username": "ec2-user",
+      "ssh_timeout": "5m",
+      "ami_virtualization_type": "hvm",
+      "ami_name": "splunk_heavy_forwarder_aws_linux_{{ user `splunk_version` }}",
+      "ami_description" : "CimSec Splunk Heavy Forwarder",
+      "tags": {
+        "Name": "Splunk Heavy Forwarder v{{ user `splunk_version` }} based on Vault AWS 2 Linux Image",
+        "Built-By": "Cimsec",
+        "Splunk-Version": "{{ user `splunk_version` }}",
+        "Release-Version": "{{ user `release_version` }}"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type" : "file",
+      "source" : "./bin/",
+      "destination" : "/tmp"
+    },
+    {
+      "type" : "file",
+      "source" : "./scripts",
+      "destination" : "./scripts"
+    },
+    {
+      "type" : "file",
+      "source" : "./license",
+      "destination" : "./license"
+    },
+    {
+      "type"  : "shell",
+      "inline": [
+        "sudo yum install -y /tmp/splunk-8.0.5-a1a6394cc5ae-linux-2.6-x86_64.rpm",
+        "sudo yum install -y /tmp/falcon-sensor-amzn2_latest.rpm",
+        "sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm",
+        "sudo /opt/CrowdStrike/falconctl -d -f --aid"
+      ]
+    },
+    {
+      "type" : "shell",
+      "inline" : [
+        "sudo yum install -y gcc openssl-devel bzip2-devel libffi-devel",
+        "sudo mkdir /opt/python3.7",
+        "sudo cd /opt/python3.7",
+        "sudo wget https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz",
+        "sudo tar xzf Python-3.7.7.tgz",
+        "cd Python-3.7.7",
+        "sudo ./configure --enable-optimizations",
+        "sudo make altinstall",
+        "sudo cp python /bin/python3.7"
+      ]
+    },
+    {
+      "type" : "shell",
+      "inline" : [
+        "sudo mkdir -p /opt/splunk/etc/licenses/enterprise/",
+        "sudo mv ./license/* /opt/splunk/etc/licenses/enterprise/",
+        "sudo cp /tmp/splunkclouduf.spl /opt/splunk/etc/apps/",
+        "sudo cp ./scripts/configure_splunk_environment_variables.sh /etc/profile.d/",
+        "sudo ./scripts/configure_splunk.sh {{ user `splunk_input` }}"
+      ]
+    }
+  ]
+}
